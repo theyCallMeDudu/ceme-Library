@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\BookRequest;
 use App\Models\ModelBook;
 use App\User;
 
@@ -27,7 +27,7 @@ class BookController extends Controller
         //return view('index');
         //dd($this->objBook->find(1)->relUsers);
 
-        $book = $this->objBook->all()->sortBy('title');
+        $book = $this->objBook->paginate(10)->sortBy('title');
         return view('index', compact('book'));
     }
 
@@ -38,7 +38,8 @@ class BookController extends Controller
      */
     public function create()
     {
-        //
+        $users = $this->objUser->all();
+        return view('create', compact('users'));
     }
 
     /**
@@ -47,9 +48,18 @@ class BookController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(BookRequest $request)
     {
-        //
+        $cad = $this->objBook->create([
+            'title' => $request->title,
+            'id_user' => $request->id_user,
+            'year' => $request->year,
+            'pages' => $request->pages
+        ]);
+
+        if($cad){
+            return redirect('books');
+        }
     }
 
     /**
@@ -60,7 +70,8 @@ class BookController extends Controller
      */
     public function show($id)
     {
-        //
+        $book = $this->objBook->find($id);
+        return view('show', compact('book'));
     }
 
     /**
@@ -71,7 +82,9 @@ class BookController extends Controller
      */
     public function edit($id)
     {
-        //
+        $book = $this->objBook->find($id);
+        $users = $this->objUser->all();
+        return view('create', compact('book', 'users'));
     }
 
     /**
@@ -81,9 +94,15 @@ class BookController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(BookRequest $request, $id)
     {
-        //
+        $this->objBook->where(['id'=>$id])->update([
+            'title' => $request->title,
+            'id_user' => $request->id_user,
+            'year' => $request->year,
+            'pages' => $request->pages
+        ]);
+        return redirect('books');
     }
 
     /**
@@ -94,6 +113,11 @@ class BookController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $delete = $this->objBook->find($id);
+        $delete->delete();
+
+        if($delete){
+            return redirect('books');
+        }
     }
 }
